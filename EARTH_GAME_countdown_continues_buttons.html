@@ -1,0 +1,630 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EARTH GAME</title>
+<style>
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;padding:12px 12px 90px;font-family:Arial,sans-serif;text-align:center;color:#fff;background:linear-gradient(135deg,#061923,#12505a,#061923)}
+.language-bar{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px}.language-bar select{max-width:100%}.app-exit-btn{background:#a92e38;color:#fff;border:1px solid #ff6874}
+.container{max-width:850px;margin:10px auto;padding:16px;background:#071d2bee;border:1px solid #3b6975;border-radius:18px}
+h1,h2{color:#5fffd2}.panel{background:#102f3b;padding:14px;margin:12px 0;border-radius:12px}
+.balance{font-size:25px;font-weight:bold;color:#ffd166}
+input,select,button{padding:11px;margin:5px;border:0;border-radius:8px;font-size:15px;max-width:100%}
+button{background:#5fffd2;color:#061b20;cursor:pointer;font-weight:bold}button:disabled{opacity:.45;cursor:not-allowed}
+.secondary{background:#ffd166}
+.card{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;max-width:500px;margin:12px auto}
+.cell{display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:7px;background:#e8f1f3;color:#122a35;font-weight:bold;font-size:18px}
+.header{background:#147d78;color:#fff}.marked{background:#e64b3c;color:#fff}.free{background:#ffd166;color:#061b20;font-size:12px}
+#lastNumber{width:100px;height:100px;margin:16px auto;display:flex;align-items:center;justify-content:center;border:5px solid #5fffd2;border-radius:50%;background:#102f3b;color:#ffd166;font-size:36px;font-weight:bold}
+#message,#transactionMessage,#withdrawMessage,#profileMessage{min-height:28px;color:#ffd166;font-weight:bold}
+#calledNumbers{display:flex;flex-wrap:wrap;justify-content:center;gap:5px}.called{padding:7px;border-radius:6px;background:#147d78}
+.progress-wrap{max-width:500px;margin:10px auto;background:#24434d;border-radius:10px;overflow:hidden;height:16px}
+#progressBar{height:100%;width:0%;background:#5fffd2;transition:width .2s}
+.picker-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(36px,1fr));gap:6px;width:100%;max-width:850px;margin:16px auto}
+.picker-card{min-width:0;min-height:40px;aspect-ratio:1/1;padding:2px;margin:0;border:1px solid #b9d3dc;border-radius:7px;background:#e8f1f3;color:#102f3b;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px #0003;touch-action:manipulation}
+.picker-card.selected{background:#e53935;color:#fff;border-color:#ffb4b4;outline:2px solid #ffb4b4;outline-offset:1px}.picker-card.taken{background:#65777c;color:#fff;cursor:not-allowed;opacity:.8}.cards-display{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.played-card{background:#102f3b;border:1px solid #3b6975;border-radius:12px;padding:8px}.played-card h3{color:#ffd166}
+.countline{font-size:20px;font-weight:bold;color:#ffd166;background:#061923;border:2px solid #ffd166;border-radius:12px;padding:14px;margin:14px auto;max-width:520px;min-height:54px;display:flex;align-items:center;justify-content:center;text-align:center}
+#gameCountdown{display:none;width:min(92%,360px);min-height:220px;margin:18px auto;padding:22px 12px;border:5px solid #ffd166;border-radius:24px;background:radial-gradient(circle at top,#195261,#061923 72%);box-shadow:0 0 22px #ffd16688, inset 0 0 18px #5fffd233;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+#gameCountdown.visible{display:flex}
+#gameCountdownLabel{font-size:clamp(18px,5vw,25px);font-weight:900;color:#5fffd2;letter-spacing:1px}
+#gameCountdownNumber{font-size:clamp(76px,22vw,112px);line-height:1.05;font-weight:900;color:#ffd166;text-shadow:0 4px 0 #8b5c00,0 0 18px #ffd16699;font-variant-numeric:tabular-nums}
+#gameCountdownHint{font-size:15px;line-height:1.4;color:#fff}
+.small{font-size:13px;color:#c8dce2}.backBtn{background:#ffd166;display:block;margin:5px auto 16px}
+.taskbar{position:fixed;left:0;right:0;bottom:0;z-index:999;background:#04151df5;border-top:1px solid #3b6975;display:flex;justify-content:center;gap:8px;padding:9px max(8px,env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom));box-shadow:0 -5px 18px #0007}
+body:not(.logged-in) .language-bar,body:not(.logged-in) .taskbar{display:none!important}
+body.logged-in .language-bar{display:flex}
+body.game-page-active .language-bar{display:none!important}
+body.logged-in .taskbar{display:flex}
+.taskbar button{flex:1;max-width:220px;margin:0;background:#163845;color:#eafcff;border:1px solid #3b6975;padding:12px 6px;font-size:14px}
+.taskbar button.active{background:#5fffd2;color:#061b20}.taskbar button.exit-btn{background:#a92e38;color:#fff;border-color:#ff6874}
+.profile-field{display:block;width:min(100%,420px);margin:8px auto;text-align:left}.profile-field input{width:100%;margin:5px 0}
+.history-item{text-align:left;padding:10px;border-bottom:1px solid #31515a;overflow-wrap:anywhere}
+@media(max-width:480px){.container{padding:10px}.cell{min-height:42px;font-size:15px}input,select,button{max-width:100%}.picker-grid{grid-template-columns:repeat(auto-fit,minmax(30px,1fr));gap:5px}.picker-card{min-height:34px;font-size:12px;border-radius:6px}.countline{font-size:17px}#gameCountdown{min-height:200px;border-width:4px}#gameCountdownNumber{font-size:clamp(76px,25vw,100px)}}
+.auth-mode{display:flex;gap:10px;margin:10px 0}.auth-mode button{flex:1}.profile-field{display:block;text-align:left;margin:12px 0}.profile-field input{display:block;width:100%;margin-top:6px;padding:12px;border-radius:8px;border:1px solid #8ba8b2;font-size:16px}.small{font-size:12px;opacity:.85}
+
+#welcomePage{min-height:65vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.welcome-box{width:100%;max-width:620px;padding:28px 18px;background:linear-gradient(145deg,#102f3b,#071923);border:2px solid #5fffd2;border-radius:20px;box-shadow:0 10px 30px #0005}
+.welcome-icon{font-size:64px;margin:8px 0}
+#welcomeName{color:#ffd166;overflow-wrap:anywhere}
+
+</style>
+</head>
+<body>
+<div class="container language-bar" style="padding:8px;margin:8px auto"><label id="languageSelectLabel" for="languageSelect"><strong>🌐 Language</strong></label><select id="languageSelect" aria-label="Choose language"><option value="en">English</option><option value="om">Afaan Oromoo</option><option value="am">Amharic</option><option value="sid">Sidama</option><option value="ti">ትግርኛ (Tigrinya)</option><option value="so">Somali</option><option value="ha">Hadiyya</option><option value="wo">Wolaytta</option><option value="ga">Gurage</option><option value="gam">Gambella</option></select></div>
+<section id="selectionPage" class="container">
+<h1>🌍 EARTH GAME</h1><p>Choose your cards!</p>
+<p class="small"></p>
+<div class="panel">
+<h2></h2><p id="selectedCardText">Selected cards: </p><p id="affordText" class="small"></p>
+<div id="cardPickerGrid" class="picker-grid" aria-label="Cards 1 through 400"></div>
+<label for="stakeChoice">Stake:</label>
+<select id="stakeChoice"><option value="10">10 ETB</option><option value="20">20 ETB</option><option value="30">30 ETB</option><option value="50" selected>50 ETB</option><option value="100">100 ETB</option><option value="200">200 ETB</option></select>
+<p class="small"></p>
+<div class="panel"><p>Number of cards: <b id="liveCardCount">0</b></p><p>Total card stake: <b id="totalStake">0.00</b> ETB</p><p>Pool: <b id="pool">0.00</b> ETB</p><p>Rewards: <b id="prize">0.00</b> ETB</p><p class="small"></p></div>
+<p id="selectionCountdown" class="countline" role="status">Select a card; the 20-second countdown starts automatically.</p>
+<button id="goToPlayBtn" type="button" hidden>▶ GO TO PLAY</button>
+</div>
+<div class="panel"><button id="walletMenuBtn" aria-expanded="false">💰 1000.00 ETB</button>
+<div id="walletMenu" hidden><p>Balance</p><div class="balance"><span id="balance">1000.00</span> ETB</div></div></div>
+</section>
+
+<section id="welcomePage" class="container" hidden aria-labelledby="welcomeTitle">
+  <div class="welcome-box">
+    <div class="welcome-icon" aria-hidden="true">🌍🎉</div>
+    <h1 id="welcomeTitle">WELCOME TO EARTH GAME!</h1>
+    <h2>Hello, <span id="welcomeName">Player</span>!</h2>
+    <p>Your account is ready. We are happy to have you here.</p>
+    <p class="small">Choose your cards and enjoy the game.</p>
+    <button id="continueWelcomeBtn" type="button">Continue to Game ➜</button>
+  </div>
+</section>
+
+<section id="gamePage" class="container" hidden>
+<button id="leaveGameBtn" class="backBtn" type="button">🚪 Leave</button>
+<p>Your cards: <strong id="activeCardLabel">1</strong></p>
+<p>Total stake: <b id="gamePool">0.00</b> ETB · Total reward: <b id="gamePrize">0.00</b> ETB</p>
+<p id="message" role="status">Select cards to start the game.</p><div id="gameCountdown" role="status" aria-live="polite"><div id="gameCountdownLabel">⏳ GAME STARTS IN</div><div id="gameCountdownNumber">20</div><div id="gameCountdownHint">Please wait until the countdown reaches zero.</div></div><h3>Called number </h3><div id="lastNumber">--</div>
+<p class="countline">Called: <span id="calledCount">0</span> / 75 | Remaining: <span id="remainingCount">75</span></p>
+<div class="progress-wrap"><div id="progressBar"></div></div>
+<p><button id="voiceBtn">🔊 Voice: ON</button><button id="repeatBtn">🔁 Repeat last number</button></p>
+<h2 id="cardsDisplayTitle" style="letter-spacing:3px">YOUR CARDS</h2><div id="cardsDisplay" class="cards-display"></div><h3>Called numbers</h3><div id="calledNumbers"></div>
+</section>
+
+<section id="depositPage" class="container" hidden>
+<button class="backBtn" data-home>← Back</button><h1>💳 DEPOSIT</h1>
+<div class="panel"><h3>Telebirr</h3><p>Telebirr number: <strong id="telebirrNumber">0961181874</strong></p><p>Telebirr account name: <strong>Abiyyi belata daribe</strong></p><button id="copyTelebirrBtn" type="button">📋 Copy account number</button></div>
+<div class="panel"><label for="depositAmount" data-i18n="depositAmountLabel">Deposit amount (ETB)</label><br><select id="depositAmount" required><option value="" data-i18n="chooseAmount">Choose deposit amount</option><option value="50">50 ETB</option><option value="100">100 ETB</option><option value="300">300 ETB</option><option value="500">500 ETB</option><option value="1000">1000 ETB</option></select><br><p class="small" data-i18n="depositAllowed">Allowed amounts: 50, 100, 300, 500, or 1000 ETB only.</p><br>
+<label for="depositProof">Telebirr payment proof screenshot</label><br><input id="depositProof" type="file" accept="image/*" capture="environment"><br>
+<p class="small">This creates a deposit request only. A screenshot does not verify payment automatically; your balance will not increase until an administrator/server verifies it.</p><button id="submitDepositBtn" type="button">Verify and Send</button></div><p id="transactionMessage" role="status"></p>
+</section>
+
+<section id="walletPage" class="container" hidden>
+<h1>👛 WALLET</h1><div class="panel"><p id="walletBalanceLabel">Balance</p><div class="balance"><span id="balanceWallet">1000.00</span> ETB</div>
+<button id="walletDepositPageBtn">➕ Deposit</button><button id="walletWithdrawPageBtn" class="secondary">➖ Withdraw</button><p class="small"></p></div>
+<div class="panel"><h2>Account</h2><p>Name: <strong id="walletProfileName">Guest</strong></p><p>Account: <strong id="walletProfileAccount">Not registered</strong></p></div>
+</section>
+
+<section id="profilePage" class="container" hidden>
+<h1>👤 PROFILE</h1>
+<div class="panel"><h2>Register / Login</h2>
+<div class="auth-mode"><button id="showRegisterBtn" type="button">📝 Register</button><button id="showLoginBtn" class="secondary" type="button">🔐 Login</button></div>
+<div id="registerFields">
+<label class="profile-field">Full name<input id="profileNameInput" type="text" maxlength="40" placeholder="Enter your full name" autocomplete="name"></label>
+<label class="profile-field">Email address or phone number<input id="profileAccountInput" type="text" maxlength="120" placeholder="name@gmail.com or 09XXXXXXXX" autocomplete="username"></label>
+<label class="profile-field">Create password<input id="profilePasswordInput" type="password" maxlength="100" placeholder="Create password (at least 8 characters)" autocomplete="new-password"></label>
+<label class="profile-field">Confirm password<input id="confirmPasswordInput" type="password" maxlength="100" placeholder="Enter the same password again" autocomplete="new-password"></label>
+<label class="profile-field">Invitation code (optional)<input id="referralCodeInput" type="text" maxlength="32" placeholder="Enter invitation code if you have one" autocomplete="off"></label>
+<button id="registerBtn" type="button">📝 Register</button>
+<p class="small">Registration does not use OTP. This demo stores accounts on this device only.</p>
+</div>
+<div id="loginFields" hidden>
+<label class="profile-field">Registered email or phone number<input id="loginAccountInput" type="text" maxlength="120" placeholder="Registered email or phone number" autocomplete="username"></label>
+<label class="profile-field">Password<input id="loginPasswordInput" type="password" maxlength="100" placeholder="Your password" autocomplete="current-password"></label>
+<button id="loginBtn" type="button">🔐 Login</button>
+</div>
+<button id="saveProfileBtn" type="button" hidden>💾 Update Profile</button>
+<button id="logoutBtn" class="app-exit-btn" type="button" hidden>🚪 Logout</button>
+<p id="profileMessage" role="status"></p>
+<p>Name: <strong id="profileNameDisplay">Guest</strong></p><p>Account: <strong id="profileAccountDisplay">Not registered</strong></p>
+<p class="small">New accounts receive a one-time welcome bonus of 1000 ETB. This demo stores accounts on this device only.</p></div>
+<div class="panel" id="invitationPanel" hidden>
+<h2>🎁 Invite Friends</h2>
+<p>Your invitation code: <strong id="myReferralCode">—</strong></p>
+<label class="profile-field">Invitation link<input id="invitationLink" type="text" readonly value=""></label>
+<button id="copyInvitationBtn" type="button">📋 Copy invitation link</button>
+<p>Reward: 5 ETB for each new account registered with your invitation code. Two successful invitations = 10 ETB.</p>
+<p>Successful invitations: <strong id="referralCount">0</strong></p>
+<p>Total invitation rewards: <strong id="referralReward">0.00</strong> ETB</p>
+<p class="small">Demo only: invitations and rewards are stored on this device. Cross-device referrals and real money rewards require a secure server.</p>
+</div>
+<div class="panel"><h2 id="gameHistoryTitle">📜 Game History</h2><div id="gameHistory"><p class="small">No game history yet.</p></div><button id="clearHistoryBtn" class="secondary">Clear History</button></div>
+</section>
+
+<section id="withdrawPage" class="container" hidden>
+<button class="backBtn" data-home>← Back</button><h1>💸 WITHDRAW</h1><div class="panel">
+<label for="withdrawAccountName">Real account name</label><br><input id="withdrawAccountName" type="text" placeholder="Your account name"><br>
+<label for="withdrawAccountNumber">Telebirr account number</label><br><input id="withdrawAccountNumber" type="tel" inputmode="numeric" placeholder="09XXXXXXXX"><br>
+<label for="withdrawAmount">Withdraw amount</label><br><input id="withdrawAmount" type="number" min="200" max="10000" step="1" placeholder="200–10000 ETB"><br><p class="small">Minimum 200 ETB; maximum 10,000 ETB. Maximum 3 withdrawal requests per day.</p><br>
+<button id="submitWithdrawBtn" type="button">Confirm Withdraw</button><p class="small">This creates a withdrawal request only; it does not send an actual Telebirr payment.</p></div><p id="withdrawMessage" role="status"></p>
+</section>
+
+<nav class="taskbar" aria-label="Task bar"><button id="tabGame" class="active">🎮 Game</button><button id="tabWallet" title="Wallet">👛 Wallet</button><button id="tabProfile">👤 Profile</button><button id="exitGameBtn" class="exit-btn" type="button">🚪 Exit</button></nav>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const HISTORY_KEY="earthGameHistoryV1",WITHDRAW_LIMIT_PREFIX="earthGameWithdrawCountV1_",PROFILE_NAME_KEY="earthGameProfileName",PROFILE_ACCOUNT_KEY="earthGameProfileAccount",CARD_OWNERS_KEY="earthGameCardOwnersV2",BALANCE_PREFIX="earthGameBalanceV2_";
+let selectedCardNumber=1,selectedCards=[],gameCards=[],currentCard=[],calledNumbers=[],timer=null,returnTimer=null;
+let balance=0,gameRunning=false,gameFinished=false,voiceEnabled=true;
+let cardCountdownTimer=null,cardCountdownSeconds=20,stakeDeductedThisGame=false,gamePageWaitingForCountdown=false;
+const LAST_PAGE_KEY="earthGameLastPageV1";
+const pages=["selectionPage","welcomePage","gamePage","depositPage","walletPage","profilePage","withdrawPage"];
+function hasActiveLogin(){try{return !!(localStorage.getItem(PROFILE_ACCOUNT_KEY)||"").trim();}catch(e){return false;}}
+function showOnly(id){
+  document.body.classList.toggle("logged-in",hasActiveLogin());
+  document.body.classList.toggle("game-page-active",id==="gamePage");
+  if(!pages.includes(id))id="selectionPage";
+  if(id!=="profilePage"&&!hasActiveLogin())id="profilePage";
+  if(hasActiveLogin()&&id!=="welcomePage"){try{localStorage.setItem(LAST_PAGE_KEY,id);}catch(e){}}
+  pages.forEach(p=>$(p).hidden=p!==id);
+  if(id==="walletPage"){updateBalance();renderProfile();}
+  if(id==="profilePage"){renderProfile();renderGameHistory();}
+  if(id==="withdrawPage"){updateWithdrawLimitText();}
+}
+function restoreLastPage(){let id="selectionPage";try{id=localStorage.getItem(LAST_PAGE_KEY)||"selectionPage";}catch(e){}if(!pages.includes(id))id="selectionPage";showOnly(id);setActiveTab(id==="walletPage"?"tabWallet":id==="profilePage"?"tabProfile":"tabGame");}
+function showWelcome(name){
+  const safeName=String(name||"Player").trim()||"Player";
+  $("welcomeName").textContent=safeName;
+  showOnly("welcomePage");
+  setActiveTab("tabGame");
+}
+function setActiveTab(id){["tabGame","tabWallet","tabProfile"].forEach(x=>$(x).classList.toggle("active",x===id));}
+function clearReturnTimer(){if(returnTimer!==null){clearTimeout(returnTimer);returnTimer=null;}}
+function stopTimer(){if(timer!==null){clearInterval(timer);timer=null;}}
+function stopCardCountdown(){if(cardCountdownTimer!==null){clearInterval(cardCountdownTimer);cardCountdownTimer=null;}}
+function accountId(){let a="";try{a=(localStorage.getItem(PROFILE_ACCOUNT_KEY)||"").trim().toLowerCase();}catch(e){}return a||"guest-default";}
+function getCardOwners(){try{return JSON.parse(localStorage.getItem(CARD_OWNERS_KEY)||"{}")}catch(e){return {};}}
+function saveCardOwners(o){try{localStorage.setItem(CARD_OWNERS_KEY,JSON.stringify(o));}catch(e){}}
+function releaseSelectedCards(){const owners=getCardOwners(),me=accountId();selectedCards.forEach(n=>{if(owners[n]===me)delete owners[n];});saveCardOwners(owners);selectedCards=[];gameCards=[];renderPickerGrid();updateSelectionInfo();}
+function loadBalance(){try{const v=localStorage.getItem(BALANCE_PREFIX+accountId());balance=v===null?0:Number(v);if(!Number.isFinite(balance)||balance<0)balance=0;}catch(e){balance=1000;}}
+function saveBalance(){
+  try {
+    const active=(localStorage.getItem(PROFILE_ACCOUNT_KEY)||"").trim().toLowerCase();
+    if(active) localStorage.setItem(BALANCE_PREFIX+active,String(balance));
+  } catch(e) {}
+}
+function updateBalance(){saveBalance();["balance","balanceWallet"].forEach(id=>$(id).textContent=balance.toFixed(2));$("walletMenuBtn").textContent="💰 "+balance.toFixed(2)+" ETB";updateSelectionInfo();}
+function updateSelectionInfo(){const s=Number($("stakeChoice").value)||0;$("selectedCardText").textContent="Selected cards: "+selectedCards.length+" / 6 ("+selectedCards.join(", ")+")";const affordable=s>0?Math.floor(balance/s):0;$("affordText").textContent="Balance: "+balance.toFixed(2)+" ETB. Stake per card: "+s+" ETB. Your balance can pay for up to "+Math.min(6,affordable)+" cards.";const count=$("liveCardCount");if(count)count.textContent=selectedCards.length;const playBtn=$("goToPlayBtn");if(playBtn)playBtn.hidden=selectedCards.length===0||gameRunning;}
+function totals(){const p=selectedCards.length,s=Number($("stakeChoice").value);if(!Number.isFinite(s)||s<=0){$("pool").textContent=$("gamePool").textContent=$("prize").textContent=$("gamePrize").textContent="0.00";if($("totalStake"))$("totalStake").textContent="0.00";if($("liveCardCount"))$("liveCardCount").textContent=p;return null;}const pool=p*s,prize=p*s*.8;$("pool").textContent=$("gamePool").textContent=pool.toFixed(2);$("prize").textContent=$("gamePrize").textContent=prize.toFixed(2);if($("totalStake"))$("totalStake").textContent=pool.toFixed(2);if($("liveCardCount"))$("liveCardCount").textContent=p;return{p,s,pool,prize};}
+function randomUnique(min,max,count){const a=[];while(a.length<count){const n=Math.floor(Math.random()*(max-min+1))+min;if(!a.includes(n))a.push(n);}return a;}
+function renderPickerGrid(){const grid=$("cardPickerGrid"),owners=getCardOwners(),me=accountId();grid.innerHTML="";for(let i=1;i<=400;i++){const b=document.createElement("button"),owner=owners[i];b.type="button";b.className="picker-card"+(selectedCards.includes(i)?" selected":"")+(owner&&owner!==me?" taken":"");b.textContent=owner&&owner!==me?"X":i;b.disabled=!!(owner&&owner!==me)||gameRunning;b.setAttribute("aria-pressed",String(selectedCards.includes(i)));b.title=owner&&owner!==me?"Card reserved by another account":"Card "+i;b.addEventListener("click",()=>{if(gameRunning)return;const nowOwners=getCardOwners();if(nowOwners[i]&&nowOwners[i]!==me){$("selectionCountdown").textContent="Card "+i+" has been selected by another account.";return;}if(selectedCards.includes(i)){
+// Card filatame irra deebi'anii tuquun filannoo irraa kaasa.
+selectedCards=selectedCards.filter(n=>n!==i);
+if(nowOwners[i]===me)delete nowOwners[i];
+saveCardOwners(nowOwners);
+selectedCardNumber=selectedCards.length?selectedCards[selectedCards.length-1]:1;
+if(selectedCards.length===0){stopCardCountdown();cardCountdownSeconds=20;}
+renderPickerGrid();updateSelectionInfo();totals();
+if(selectedCards.length===0){
+  $("selectionCountdown").textContent="No card selected. Choose a card to start the 20-second countdown.";
+}else{
+  $("selectionCountdown").textContent="Card "+i+" deselected. "+selectedCards.length+" card(s) remain; the current countdown continues.";
+}
+return;
+}const stake=Number($("stakeChoice").value)||0;if(selectedCards.length>=6){$("selectionCountdown").textContent="An account can select up to 6 cards.";return;}if(balance<(selectedCards.length+1)*stake){$("selectionCountdown").textContent="Insufficient Balance — your balance cannot cover another card. Reduce the stake or check your wallet.";return;}selectedCards.push(i);selectedCardNumber=i;nowOwners[i]=me;saveCardOwners(nowOwners);renderPickerGrid();updateSelectionInfo();totals();startCardCountdown();});grid.appendChild(b);}updateSelectionInfo();}
+function makeCardMatrix(){const values=randomUnique(1,75,24);values.splice(12,0,"FREE");const matrix=[];for(let r=0;r<5;r++)matrix.push(values.slice(r*5,r*5+5));return matrix;}
+function generateCard(){gameCards=selectedCards.map(n=>({number:n,matrix:makeCardMatrix()}));currentCard=gameCards[0]?.matrix||[];$("activeCardLabel").textContent=selectedCards.join(", ");renderCard();}
+function renderCard(){const el=$("cardsDisplay");if(!el)return;el.innerHTML="";gameCards.forEach(gc=>{const wrap=document.createElement("div");wrap.className="played-card";const title=document.createElement("h3");title.textContent="Card "+gc.number;wrap.appendChild(title);const board=document.createElement("div");board.className="card";["B","I","N","G","O"].forEach(x=>{const d=document.createElement("div");d.className="cell header";d.textContent=x;board.appendChild(d);});gc.matrix.flat().forEach(v=>{const d=document.createElement("div");d.className="cell";d.textContent=v;if(v==="FREE")d.classList.add("free","marked");else if(calledNumbers.includes(v))d.classList.add("marked");board.appendChild(d);});wrap.appendChild(board);el.appendChild(wrap);});}
+
+function renderCalledNumbers(){const el=$("calledNumbers");el.innerHTML="";calledNumbers.forEach(n=>{const s=document.createElement("span");s.className="called";s.textContent=n;el.appendChild(s);});$("calledCount").textContent=calledNumbers.length;$("remainingCount").textContent=75-calledNumbers.length;$("progressBar").style.width=(calledNumbers.length/75*100)+"%";}
+function speak(n){if(!voiceEnabled||!("speechSynthesis"in window))return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance("Number "+n);u.lang="en-US";u.rate=.85;window.speechSynthesis.speak(u);}
+function matrixHasBingo(matrix){for(let r=0;r<5;r++)if(matrix[r].every(v=>v==="FREE"||calledNumbers.includes(v)))return true;for(let c=0;c<5;c++){let ok=true;for(let r=0;r<5;r++){const v=matrix[r][c];if(v!=="FREE"&&!calledNumbers.includes(v))ok=false;}if(ok)return true;}let a=true,b=true;for(let i=0;i<5;i++){const x=matrix[i][i],y=matrix[i][4-i];if(x!=="FREE"&&!calledNumbers.includes(x))a=false;if(y!=="FREE"&&!calledNumbers.includes(y))b=false;}return a||b;}
+function hasBingo(){return gameCards.some(gc=>matrixHasBingo(gc.matrix));}
+function getStoredList(key){try{const v=JSON.parse(localStorage.getItem(key)||"[]");return Array.isArray(v)?v:[];}catch(e){return[];}}
+function addGameHistory(result,winner){const list=getStoredList(HISTORY_KEY);list.unshift({date:new Date().toLocaleString(),card:selectedCards.join(", "),result,called:calledNumbers.length,winner:!!winner,stake:Number($("stakeChoice").value)*selectedCards.length});try{localStorage.setItem(HISTORY_KEY,JSON.stringify(list.slice(0,50)));}catch(e){}renderGameHistory();}
+function endGame(msg,winner=false,winners=[]){if(gameFinished)return;stopTimer();gameRunning=false;gameFinished=true;if("speechSynthesis"in window)window.speechSynthesis.cancel();if(winner){const t=totals();if(t){const owners=getCardOwners();const winnerAccounts=[...new Set(winners.map(gc=>owners[gc.number]||accountId()))];const share=winnerAccounts.length?t.prize/winnerAccounts.length:0;if(winnerAccounts.includes(accountId())){balance+=share;updateBalance();}msg+=" Total prize "+t.prize.toFixed(2)+" ETB; winning accounts: "+winnerAccounts.length+"; share per account: "+share.toFixed(2)+" ETB.";}}$("message").textContent=msg;addGameHistory(msg,winner);returnTimer=setTimeout(()=>{if(gameFinished&&!gameRunning){releaseSelectedCards();showOnly("selectionPage");setActiveTab("tabGame");}},5000);}
+function drawNumber(){if(!gameRunning)return;if(calledNumbers.length>=75){endGame("All numbers from 1 to 75 have been called.");return;}const remaining=[];for(let n=1;n<=75;n++)if(!calledNumbers.includes(n))remaining.push(n);const n=remaining[Math.floor(Math.random()*remaining.length)];calledNumbers.push(n);$("lastNumber").textContent=n;renderCard();renderCalledNumbers();speak(n);const winningCards=gameCards.filter(gc=>matrixHasBingo(gc.matrix));if(winningCards.length)endGame("🎉 BINGO! Winning cards: "+winningCards.map(gc=>gc.number).join(", ")+" completed a bingo!",true,winningCards);else if(calledNumbers.length===75)endGame("All numbers from 1 to 75 have been called.");}
+function startGame(){if(gameRunning)return;$("gameCountdown").classList.remove("visible");const t=totals();if(!t){$("selectionCountdown").textContent="Choose a valid stake.";return;}if(selectedCards.length<2){$("selectionCountdown").textContent="Select at least 2 cards to start the game.";return;}const totalStake=t.s*selectedCards.length;if(balance<totalStake){$("selectionCountdown").textContent="Insufficient Balance — your balance cannot cover the selected cards. Add funds or reduce the stake.";return;}clearReturnTimer();stopTimer();balance-=totalStake;stakeDeductedThisGame=true;updateBalance();calledNumbers=[];gameFinished=false;gameRunning=true;$("lastNumber").textContent="--";renderCalledNumbers();renderCard();$("message").textContent="The game has started automatically! Numbers are being called.";timer=setInterval(drawNumber,1000);}
+function showSelectionPage(){
+  // Navigation buttons must not cancel or restart the active 20-second countdown.
+  // Keep selected cards and the remaining seconds while switching pages.
+  gamePageWaitingForCountdown=false;
+  clearReturnTimer();
+  if(cardCountdownTimer!==null && selectedCards.length>0 && !gameRunning){
+    $("selectionCountdown").textContent="⏳ COUNTDOWN: "+cardCountdownSeconds+" seconds remaining · Cards selected: "+selectedCards.length+"/6. You may use other buttons; the countdown continues.";
+  }else if(!gameRunning){
+    $("selectionCountdown").textContent="Select at least 2 cards. The 20-second countdown starts automatically; only selected-card stakes are deducted.";
+  }
+  showOnly("selectionPage");
+  setActiveTab("tabGame");
+  updateBalance();
+}
+function handleGoToPlayClick(){
+  if(gameRunning)return;
+  if(selectedCards.length<2){$("selectionCountdown").textContent="Select at least 2 cards. The game will not start before the 20-second countdown ends.";return;}
+  const t=totals();
+  if(!t){$("selectionCountdown").textContent="Choose a valid stake before starting the game.";return;}
+  if(selectedCards.length>6){$("selectionCountdown").textContent="You can select a maximum of 6 cards.";return;}
+  if(balance<t.s*selectedCards.length){$("selectionCountdown").textContent="Insufficient balance for the selected cards.";return;}
+  if(cardCountdownTimer===null){
+    $("selectionCountdown").textContent="The countdown has ended or is not running. Select a card to begin a new 20-second countdown.";
+    return;
+  }
+  // Move to the play screen immediately, but do not start calling numbers
+  // until the original 20-second card-selection countdown reaches zero.
+  gamePageWaitingForCountdown=true;
+  clearReturnTimer();stopTimer();gameFinished=false;calledNumbers=[];
+  generateCard();renderCalledNumbers();$("lastNumber").textContent="--";
+  $("message").textContent="⏳ Please wait: "+cardCountdownSeconds+" seconds remain. The game will start when the countdown ends.";
+  $("gameCountdownNumber").textContent=String(cardCountdownSeconds);
+  $("gameCountdown").classList.add("visible");
+  showOnly("gamePage");setActiveTab("tabGame");
+}
+function launchSelectedGame(){
+  if(gameRunning)return;
+  gamePageWaitingForCountdown=false;
+  if(selectedCards.length<2){$("selectionCountdown").textContent="Select at least 2 cards to start the game.";return;}
+  const t=totals();
+  if(!t){$("selectionCountdown").textContent="Choose a valid stake before starting the game.";return;}
+  if(selectedCards.length>6){$("selectionCountdown").textContent="You can select a maximum of 6 cards.";return;}
+  if(balance<t.s*selectedCards.length){$("selectionCountdown").textContent="Insufficient balance for the selected cards. Reduce the stake or add funds.";return;}
+  stopCardCountdown();
+  $("goToPlayBtn").hidden=true;
+  $("selectionCountdown").textContent="✅ "+selectedCards.length+" cards confirmed. Starting game…";
+  $("gameCountdown").classList.remove("visible");
+  clearReturnTimer();stopTimer();gameRunning=false;gameFinished=false;calledNumbers=[];stakeDeductedThisGame=false;
+  showOnly("gamePage");setActiveTab("tabGame");generateCard();renderCalledNumbers();$("lastNumber").textContent="--";startGame();
+}
+function startCardCountdown(){
+  // One countdown per selection round. Selecting more cards does not reset it.
+  if(cardCountdownTimer!==null||gameRunning)return;
+  if(selectedCards.length===0){
+    $("selectionCountdown").textContent="No card selected. Choose a card to start the 20-second countdown.";
+    return;
+  }
+  cardCountdownSeconds=20;
+  $("selectionCountdown").textContent="⏳ COUNTDOWN: 20 seconds remaining. Select at least 2 cards (maximum 6).";
+  cardCountdownTimer=setInterval(()=>{
+    cardCountdownSeconds--;
+    if(cardCountdownSeconds>0){
+      $("selectionCountdown").textContent="⏳ COUNTDOWN: "+cardCountdownSeconds+" seconds remaining · Cards selected: "+selectedCards.length+"/6";
+      if(gamePageWaitingForCountdown&&!gameRunning){
+        $("message").textContent="⏳ Please wait: "+cardCountdownSeconds+" seconds remain. The game will start when the countdown ends.";
+        $("gameCountdownNumber").textContent=String(cardCountdownSeconds);
+      }
+      return;
+    }
+    stopCardCountdown();
+    $("gameCountdownNumber").textContent="0";
+    $("gameCountdownHint").textContent="Time is up! Starting game…";
+    const t=totals();
+    if(selectedCards.length<2){
+      $("selectionCountdown").textContent=selectedCards.length===1
+        ?"Countdown ended. You selected only 1 card; select at least 2 cards to start. A new 20-second countdown will begin when you select another card."
+        :"Countdown ended with no cards selected. Choose a card to begin again.";
+      return;
+    }
+    if(!t){
+      $("selectionCountdown").textContent="Choose a valid stake before starting the game.";
+      return;
+    }
+    if(selectedCards.length>6){
+      $("selectionCountdown").textContent="You can select a maximum of 6 cards.";
+      return;
+    }
+    if(balance<t.s*selectedCards.length){
+      $("selectionCountdown").textContent="Insufficient balance for the selected cards. Reduce the stake or add funds, then select a card to start a new countdown.";
+      return;
+    }
+    launchSelectedGame();
+  },1000);
+}
+function exitEntireApp(){
+  if(!confirm("Exit EARTH GAME completely?"))return;
+  stopTimer();stopCardCountdown();clearReturnTimer();gameRunning=false;gameFinished=false;
+  if("speechSynthesis" in window)window.speechSynthesis.cancel();
+  try{window.close();}catch(e){}
+  // Browsers usually block closing tabs not opened by script, so show a full exit screen.
+  document.body.innerHTML='<main style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:#061923;color:#fff;font-family:Arial,sans-serif"><h1>EARTH GAME Closed</h1><p>You have exited the game.</p><p>You may now close this browser tab.</p><button type="button" id="closeTabHelp" style="padding:12px 18px;border:0;border-radius:8px;background:#5fffd2;color:#061b20;font-weight:bold">Close Tab</button></main>';
+  const closeBtn=document.getElementById("closeTabHelp");if(closeBtn)closeBtn.addEventListener("click",()=>{try{window.close();}catch(e){};});
+}
+function exitGame(){
+  // Leave only changes the visible page. It must not stop the round,
+  // release selected cards, reset called numbers, or change the stake.
+  showOnly("selectionPage");
+  setActiveTab("tabGame");
+  $("selectionCountdown").textContent="You are viewing card selection. Your selected cards are preserved and the game continues in the background. Press Game to return to the active round.";
+  updateSelectionInfo();
+  totals();
+  updateBalance();
+}
+function renderGameHistory(){const el=$("gameHistory"),list=getStoredList(HISTORY_KEY);el.innerHTML="";if(!list.length){el.innerHTML='<p class="small">No game history yet.</p>';return;}list.forEach(item=>{const d=document.createElement("div");d.className="history-item";const strong=document.createElement("strong");strong.textContent=item.winner?"🎉 Bingo":"Game completed";d.appendChild(strong);const p=document.createElement("p");p.textContent=(item.date||"")+" | Card "+item.card+" | Number "+item.called+" | Stake "+Number(item.stake||0).toFixed(2)+" ETB";d.appendChild(p);const q=document.createElement("p");q.className="small";q.textContent=item.result||"";d.appendChild(q);el.appendChild(d);});}
+function renderProfile(){let name="Guest",account="Not registered";try{name=localStorage.getItem(PROFILE_NAME_KEY)||name;account=localStorage.getItem(PROFILE_ACCOUNT_KEY)||account;}catch(e){}const loggedIn=account!=="Not registered"&&account!=="";
+$("profileNameInput").value=loggedIn&&name!=="Guest"?name:"";$("profileAccountInput").value=loggedIn?account:"";
+$("profileNameInput").disabled=loggedIn;$("profileAccountInput").disabled=loggedIn;
+$("profilePasswordInput").value="";$("profilePasswordInput").disabled=loggedIn;
+$("registerBtn").hidden=loggedIn;$("loginBtn").hidden=loggedIn;$("logoutBtn").hidden=!loggedIn;$("saveProfileBtn").hidden=!loggedIn;
+$("profileNameDisplay").textContent=name;$("profileAccountDisplay").textContent=account;$("walletProfileName").textContent=name;$("walletProfileAccount").textContent=account;}
+$("walletMenuBtn").addEventListener("click",()=>{const menu=$("walletMenu"),btn=$("walletMenuBtn");menu.hidden=!menu.hidden;btn.setAttribute("aria-expanded",String(!menu.hidden));});
+$("continueWelcomeBtn").addEventListener("click",showSelectionPage);
+$("leaveGameBtn").addEventListener("click",exitGame);
+$("tabGame").addEventListener("click",()=>{if(gameRunning||gameFinished){showOnly("gamePage");setActiveTab("tabGame");}else showSelectionPage();});
+$("exitGameBtn").addEventListener("click",exitEntireApp);
+
+$("tabWallet").addEventListener("click",()=>{showOnly("walletPage");setActiveTab("tabWallet");});
+$("tabProfile").addEventListener("click",()=>{showOnly("profilePage");setActiveTab("tabProfile");});
+$("walletDepositPageBtn").addEventListener("click",()=>showOnly("depositPage"));
+$("walletWithdrawPageBtn").addEventListener("click",()=>showOnly("withdrawPage"));
+document.querySelectorAll("[data-home]").forEach(b=>b.addEventListener("click",showSelectionPage));
+$("stakeChoice").addEventListener("change",()=>{totals();renderPickerGrid();if(selectedCards.length>0&&cardCountdownTimer===null&&!gameRunning)startCardCountdown();});
+$("goToPlayBtn").addEventListener("click",handleGoToPlayClick);
+$("voiceBtn").addEventListener("click",()=>{voiceEnabled=!voiceEnabled;$("voiceBtn").textContent=voiceEnabled?((translations[languageSelect.value]||translations.en).voiceOn||"🔊 Voice: ON"):"🔇 Voice: OFF";if(!voiceEnabled&&"speechSynthesis"in window)window.speechSynthesis.cancel();});
+$("repeatBtn").addEventListener("click",()=>{if(calledNumbers.length)speak(calledNumbers[calledNumbers.length-1]);else $("message").textContent="Wait for a number to be called first.";});
+$("copyTelebirrBtn").addEventListener("click",async()=>{const number=$("telebirrNumber").textContent;try{await navigator.clipboard.writeText(number);$("transactionMessage").textContent="Telebirr number copied: "+number;}catch(e){$("transactionMessage").textContent="Please copy this number manually: "+number;}});
+function todayKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function withdrawCountKey(){return WITHDRAW_LIMIT_PREFIX+accountId()+"_"+todayKey();}
+function getTodayWithdrawCount(){try{return Number(localStorage.getItem(withdrawCountKey())||0)||0;}catch(e){return 0;}}
+function updateWithdrawLimitText(){const msg=$("withdrawMessage");if(msg)msg.textContent="Today's withdrawal requests: "+getTodayWithdrawCount()+"/3 used. Remaining: "+Math.max(0,3-getTodayWithdrawCount())+".";}
+$("submitDepositBtn").addEventListener("click",()=>{const amount=Number($("depositAmount").value),proof=$("depositProof").files[0];if(![50,100,300,500,1000].includes(amount)){$("transactionMessage").textContent="Choose one of these deposit amounts only: 50, 100, 300, 500, or 1000 ETB.";return;}if(!proof){$("transactionMessage").textContent="Select a payment proof screenshot.";return;}if(!proof.type.startsWith("image/")){$("transactionMessage").textContent="Select an image screenshot.";return;}$("transactionMessage").textContent="Deposit request for "+amount.toFixed(2)+" ETB has been prepared but has not been sent to a server or administrator. Your balance will not increase until it is verified.";});
+$("submitWithdrawBtn").addEventListener("click",()=>{const name=$("withdrawAccountName").value.trim(),account=$("withdrawAccountNumber").value.trim(),amount=Number($("withdrawAmount").value);if(getTodayWithdrawCount()>=3){$("withdrawMessage").textContent="You have reached the daily limit. Only 3 withdrawals are allowed per day; try again tomorrow.";return;}if(!name||!account){$("withdrawMessage").textContent="Enter the account name and account number.";return;}if(!/^09\d{8}$/.test(account)){$("withdrawMessage").textContent="Enter a valid Telebirr number (09XXXXXXXX).";return;}if(!Number.isInteger(amount)||amount<200||amount>10000){$("withdrawMessage").textContent=(translations[languageSelect.value]||translations.en).withdrawError;return;}if(amount>balance){$("withdrawMessage").textContent="Your balance is insufficient for this amount.";return;}try{localStorage.setItem(withdrawCountKey(),String(getTodayWithdrawCount()+1));}catch(e){}$("withdrawMessage").textContent="Withdrawal request for "+amount.toFixed(2)+" ETB account "+account+" has been prepared. No actual payment has been made. Today: "+getTodayWithdrawCount()+"/3.";});
+const USERS_KEY="earthGameRegisteredUsersV1";
+const REFERRAL_REWARD=5;
+const REFERRAL_PROCESSED_KEY="earthGameProcessedReferralV1";
+let authMode="register";
+function makeReferralCode(account){
+ const clean=normalizeAccount(account);
+ let hash=0;for(let i=0;i<clean.length;i++)hash=((hash<<5)-hash+clean.charCodeAt(i))|0;
+ return "EARTH"+Math.abs(hash).toString(36).toUpperCase().slice(0,8);
+}
+function updateInvitationPanel(){
+ const account=(localStorage.getItem(PROFILE_ACCOUNT_KEY)||"").trim();
+ const loggedIn=!!account;
+ $("invitationPanel").hidden=!loggedIn;
+ if(!loggedIn)return;
+ const key=normalizeAccount(account),users=readUsers(),user=users[key];
+ if(!user)return;
+ if(!user.referralCode)user.referralCode=makeReferralCode(account);
+ try{localStorage.setItem(USERS_KEY,JSON.stringify(users));}catch(e){}
+ const code=user.referralCode;
+ $("myReferralCode").textContent=code;
+ const base=location.href.split("?")[0].split("#")[0];
+ $("invitationLink").value=base+"?ref="+encodeURIComponent(code);
+ $("referralCount").textContent=String(Number(user.referralCount)||0);
+ $("referralReward").textContent=(Number(user.referralReward)||0).toFixed(2);
+}
+$("copyInvitationBtn").addEventListener("click",async()=>{
+ const link=$("invitationLink").value;
+ try{await navigator.clipboard.writeText(link);$("profileMessage").textContent="Invitation link copied.";}
+ catch(e){$("invitationLink").focus();$("invitationLink").select();$("profileMessage").textContent="Copy the selected invitation link manually.";}
+});
+
+function readUsers(){try{const u=JSON.parse(localStorage.getItem(USERS_KEY)||"{}");return u&&typeof u==="object"?u:{};}catch(e){return {};}}
+function normalizeAccount(value){return value.trim().toLowerCase();}
+function setAuthMode(mode){
+ authMode=mode;
+ $("registerFields").hidden=mode!=="register";
+ $("loginFields").hidden=mode!=="login";
+ $("showRegisterBtn").classList.toggle("secondary",mode!=="register");
+ $("showLoginBtn").classList.toggle("secondary",mode!=="login");
+ $("profileMessage").textContent="";
+}
+$("showRegisterBtn").addEventListener("click",()=>setAuthMode("register"));
+$("showLoginBtn").addEventListener("click",()=>setAuthMode("login"));
+try{
+ const invitedBy=new URLSearchParams(location.search).get("ref");
+ if(invitedBy)$("referralCodeInput").value=invitedBy;
+}catch(e){}
+function validEmail(value){
+ const v=String(value||"").trim();
+ // Accept Gmail addresses only, such as name@gmail.com.
+ return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(v);
+}
+function validEthiopianPhone(value){
+ // Exactly 10 digits, starting with 09 or 07. No spaces or country code.
+ return /^(?:09|07)\d{8}$/.test(String(value||"").trim());
+}
+function validEmailOrPhone(value){
+ const v=String(value||"").trim();
+ return validEmail(v) || validEthiopianPhone(v);
+}
+function accountValidationMessage(value){
+ const v=String(value||"").trim();
+ if(v.includes("@")) return validEmail(v) ? "" : "Invalid email. Enter a valid email address, e.g. name@gmail.com.";
+ return validEthiopianPhone(v) ? "" : "Invalid phone number. Enter exactly 10 digits starting with 09 or 07 (e.g. 0912345678 or 0712345678).";
+}
+$("registerBtn").addEventListener("click",()=>{
+ const name=$("profileNameInput").value.trim(),account=$("profileAccountInput").value.trim(),password=$("profilePasswordInput").value,confirmPassword=$("confirmPasswordInput").value;
+ if(!name||!account||!password||!confirmPassword){$("profileMessage").textContent="Fill in your name, valid email or phone number, password, and confirm password.";return;}
+ const accountError=accountValidationMessage(account);
+ if(accountError){$("profileMessage").textContent=accountError;return;}
+ if(password.length<8){$("profileMessage").textContent="Password must contain at least 8 characters.";return;}
+ if(password!==confirmPassword){$("profileMessage").textContent="The passwords do not match. Please confirm your password again.";return;}
+ const key=normalizeAccount(account),users=readUsers();
+ if(users[key]){$("profileMessage").textContent="This email/phone is already registered. Please log in instead.";return;}
+ // Local-device demo only. Production must use a server and securely hashed passwords.
+ const enteredReferral=($("referralCodeInput").value||"").trim().toUpperCase();
+ const newUser={name,account,password,createdAt:new Date().toISOString(),welcomeBonusGiven:true,referralCode:makeReferralCode(account),referralCount:0,referralReward:0};
+ users[key]=newUser;
+ // Give the inviter 5 ETB once per newly registered account, if the code matches.
+ if(enteredReferral){
+   const processedKey=REFERRAL_PROCESSED_KEY+"_"+key;
+   if(!localStorage.getItem(processedKey)){
+     const inviterEntry=Object.entries(users).find(([uKey,u])=>uKey!==key&&String(u.referralCode||"").toUpperCase()===enteredReferral);
+     if(inviterEntry){
+       const [inviterKey,inviter]=inviterEntry;
+       inviter.referralCount=(Number(inviter.referralCount)||0)+1;
+       inviter.referralReward=(Number(inviter.referralReward)||0)+REFERRAL_REWARD;
+       users[inviterKey]=inviter;
+       const inviterBalanceKey=BALANCE_PREFIX+inviterKey;
+       const inviterBalance=Number(localStorage.getItem(inviterBalanceKey)||"0")||0;
+       localStorage.setItem(inviterBalanceKey,String(inviterBalance+REFERRAL_REWARD));
+       localStorage.setItem(processedKey,"1");
+     }
+   }
+ }
+ try{
+  localStorage.setItem(USERS_KEY,JSON.stringify(users));
+  localStorage.setItem(PROFILE_NAME_KEY,name);localStorage.setItem(PROFILE_ACCOUNT_KEY,account);
+  const existing=localStorage.getItem(BALANCE_PREFIX+key);
+  if(existing===null)localStorage.setItem(BALANCE_PREFIX+key,"1000");
+  loadBalance();updateBalance();$("profileMessage").textContent="Registration successful. Your account is ready. Referral reward: 5 ETB for the inviter when a valid invitation code is used.";
+  renderProfile();updateInvitationPanel();renderPickerGrid();showWelcome(name);
+ }catch(e){$("profileMessage").textContent="Could not register this account on this device.";}
+});
+$("loginBtn").addEventListener("click",()=>{
+ const account=$("loginAccountInput").value.trim(),password=$("loginPasswordInput").value;
+ if(!account||!password){$("profileMessage").textContent="Enter your registered email/phone and password.";return;}
+ const accountError=accountValidationMessage(account);
+ if(accountError){$("profileMessage").textContent=accountError;return;}
+ const key=normalizeAccount(account),user=readUsers()[key];
+ if(!user){$("profileMessage").textContent="This email/phone is not registered on this device. Register first.";return;}
+ if(user.password!==password){$("profileMessage").textContent="Incorrect password. Please try again.";return;}
+ localStorage.setItem(PROFILE_NAME_KEY,user.name);localStorage.setItem(PROFILE_ACCOUNT_KEY,user.account);loadBalance();updateBalance();renderProfile();updateInvitationPanel();renderPickerGrid();$("profileMessage").textContent="Login successful.";showWelcome(user.name);
+});
+$("logoutBtn").addEventListener("click",()=>{
+ if(gameRunning||cardCountdownTimer!==null){stopTimer();stopCardCountdown();clearReturnTimer();gameRunning=false;gameFinished=false;releaseSelectedCards();}
+ try {
+   const activeAccount=(localStorage.getItem(PROFILE_ACCOUNT_KEY)||"").trim().toLowerCase();
+   if(activeAccount) localStorage.setItem(BALANCE_PREFIX+activeAccount,String(balance));
+   localStorage.removeItem(PROFILE_NAME_KEY);
+   localStorage.removeItem(PROFILE_ACCOUNT_KEY);
+ } catch(e) {}
+ balance=0;
+ $("balance").textContent="0.00";
+ $("balanceWallet").textContent="0.00";
+ $("walletMenuBtn").textContent="💰 0.00 ETB";
+ updateSelectionInfo();
+ renderProfile();updateInvitationPanel();renderPickerGrid();showOnly("profilePage");setActiveTab("tabProfile");
+ $("loginAccountInput").value="";$("loginPasswordInput").value="";$("profilePasswordInput").value="";$("confirmPasswordInput").value="";setAuthMode("login");$("profileMessage").textContent="You have logged out. Log in with your registered email/phone and password, or register a new account.";
+});
+$("saveProfileBtn").addEventListener("click",()=>{const name=$("profileNameInput").value.trim(),account=$("profileAccountInput").value.trim();if(!name||!account){$("profileMessage").textContent="Fill in both the name and account fields.";return;}try{localStorage.setItem(PROFILE_NAME_KEY,name);localStorage.setItem(PROFILE_ACCOUNT_KEY,account);loadBalance();$("profileMessage").textContent="Your profile has been saved.";renderProfile();renderPickerGrid();updateBalance();}catch(e){$("profileMessage").textContent="Could not save your profile.";}});
+$("clearHistoryBtn").addEventListener("click",()=>{if(!confirm("Do you want to clear all game history?"))return;try{localStorage.removeItem(HISTORY_KEY);}catch(e){}renderGameHistory();});
+
+// Interface language selector. English is the default; other languages use localized UI labels.
+const LANG_KEY="earthGameLanguageV1";
+const translations={
+om:{gameTitle:"🌍 EARTH GAME",chooseCard:"Kaardii kee filadhu!",deposit:"💳 Maallaqa Galchi",wallet:"👛 Wallet",profile:"👤 Profaayilii",withdraw:"💸 Maallaqa Baasi",back:"← Duubatti deebi'i",depositAmountLabel:"Hamma maallaqa galchuu (ETB)",chooseAmount:"Hamma maallaqa galchuu filadhu",depositAllowed:"50, 100, 300, 500 ykn 1000 ETB qofa.",submitDeposit:"Mirkaneessi fi Ergi",accountName:"Maqaa abbaa herregaa",telebirrAccount:"Lakkoofsa herrega Telebirr",withdrawAmount:"Hamma maallaqa baasuu",confirmWithdraw:"Maallaqa baasuu mirkaneessi",gameTab:"🎮 Tapha",walletTab:"👛 Wallet",profileTab:"👤 Profaayilii",leave:"🚪 Ba'i",stake:"Gatii kaardii:",language:"🌐 Afaan",depositError:"50, 100, 300, 500 ykn 1000 ETB keessaa filadhu.",withdrawError:"Maallaqa baasuun 200 hanga 10,000 ETB ta'uu qaba.",limit:"Guyyaatti gaaffii maallaqa baasuu 3 qofa.",calledLabel:"Lakkoofsa waamame (1–75)",cardsTitle:"KAARDIIWWAN KEE",balanceLabel:"Hafeensa maallaqaa",depositBtn:"➕ Maallaqa galchi",withdrawBtn:"➖ Maallaqa baasi",accountTitle:"Herrega",loginTitle:"Galmee / Seensa",saveProfile:"💾 Profaayilii haaromsi",historyTitle:"📜 Seenaa taphaa",clearHistory:"Seenaa haqi",copyAccount:"📋 Lakkoofsa herregaa kopi godhi",voiceOn:"🔊 Sagalee: BANI",repeatNumber:"🔁 Lakkoofsa dhumaa irra deebi'i",namePlaceholder:"Maqaa kee galchi",accountPlaceholder:"Herrega kee galchi",phonePlaceholder:"09XXXXXXXX",withdrawPlaceholder:"200–10000 ETB",proofLabel:"Suuraa ragaa kaffaltii",registerLabel:"📝 Galmaa'i",loginLabel:"🔐 Seeni",logoutLabel:"🚪 Ba'i",welcomeNote:"Herregni haaraan yeroo jalqabaaf galmaa'u 1000 ETB yeroo tokko qofa argata.",selectedCardsLabel:"Kaardii filataman:"},
+ en:{gameTitle:"🌍 EARTH GAME",chooseCard:"Choose your cards!",deposit:"💳 DEPOSIT",wallet:"👛 WALLET",profile:"👤 PROFILE",withdraw:"💸 WITHDRAW",back:"← Back",depositAmountLabel:"Deposit amount (ETB)",chooseAmount:"Choose deposit amount",depositAllowed:"Allowed amounts: 50, 100, 300, 500, or 1000 ETB only.",submitDeposit:"Verify and Send",accountName:"Account holder name",telebirrAccount:"Telebirr account number",withdrawAmount:"Withdrawal amount",confirmWithdraw:"Confirm Withdrawal",gameTab:"🎮 Game",walletTab:"👛 Wallet",profileTab:"👤 Profile",leave:"🚪 Leave",stake:"Stake:",language:"🌐 Language",depositError:"Choose one of these deposit amounts only: 50, 100, 300, 500, or 1000 ETB.",withdrawError:"Withdrawals must be between 200 and 10,000 ETB.",limit:"Daily withdrawal limit: 3 requests.",calledLabel:"Called number (1–75)",cardsTitle:"YOUR CARDS",balanceLabel:"Balance",depositBtn:"➕ Deposit",withdrawBtn:"➖ Withdraw",accountTitle:"Account",loginTitle:"Login name and account",saveProfile:"💾 Save Profile",historyTitle:"📜 Game History",clearHistory:"Clear History",copyAccount:"📋 Copy account number",voiceOn:"🔊 Voice: ON",repeatNumber:"🔁 Repeat last number",namePlaceholder:"Enter your name",accountPlaceholder:"Enter your account",phonePlaceholder:"09XXXXXXXX",withdrawPlaceholder:"200–10000 ETB",proofLabel:"Payment screenshot",registerLabel:"📝 Register",loginLabel:"🔐 Login",logoutLabel:"🚪 Logout",welcomeNote:"New accounts receive a one-time welcome bonus of 1000 ETB. Accounts are stored on this device only.",selectedCardsLabel:"Selected cards:"},
+ am:{gameTitle:"🌍 EARTH GAME",chooseCard:"ካርድዎን ይምረጡ!",deposit:"💳 ገንዘብ ማስገባት",wallet:"👛 ዋሌት",profile:"👤 መገለጫ",withdraw:"💸 ገንዘብ ማውጣት",back:"← ተመለስ",depositAmountLabel:"የማስገቢያ መጠን (ETB)",chooseAmount:"የማስገቢያ መጠን ይምረጡ",depositAllowed:"የሚፈቀዱ መጠኖች፦ 50፣ 100፣ 300፣ 500 ወይም 1000 ETB ብቻ።",submitDeposit:"አረጋግጥ እና ላክ",accountName:"የመለያ ባለቤት ስም",telebirrAccount:"የTelebirr መለያ ቁጥር",withdrawAmount:"የማውጣት መጠን",confirmWithdraw:"ማውጣትን አረጋግጥ",gameTab:"🎮 ጨዋታ",walletTab:"👛 ዋሌት",profileTab:"👤 መገለጫ",leave:"🚪 ውጣ",stake:"ውርርድ:",language:"🌐 ቋንቋ",depositError:"ከ50፣ 100፣ 300፣ 500 ወይም 1000 ETB አንዱን ብቻ ይምረጡ።",withdrawError:"ማውጣት ከ200 እስከ 10,000 ETB መሆን አለበት።",limit:"በቀን 3 ጊዜ ብቻ ማውጣት ይቻላል።",calledLabel:"የተጠራ ቁጥር (1–75)",cardsTitle:"ካርዶችዎ",balanceLabel:"ቀሪ ሂሳብ",depositBtn:"➕ ገንዘብ አስገባ",withdrawBtn:"➖ ገንዘብ አውጣ",accountTitle:"መለያ",loginTitle:"የመግቢያ ስም እና መለያ",saveProfile:"💾 መገለጫ አስቀምጥ",historyTitle:"📜 የጨዋታ ታሪክ",clearHistory:"ታሪክ አጥፋ",copyAccount:"📋 የመለያ ቁጥር ቅዳ",voiceOn:"🔊 ድምፅ: አብራ",repeatNumber:"🔁 የመጨረሻውን ቁጥር ድገም",namePlaceholder:"ስምዎን ያስገቡ",accountPlaceholder:"መለያዎን ያስገቡ",phonePlaceholder:"09XXXXXXXX",withdrawPlaceholder:"200–10000 ETB",proofLabel:"የክፍያ ማስረጃ ምስል"},
+ sid:{gameTitle:"🌍 EARTH GAME",chooseCard:"Kaardete doori!",deposit:"💳 Deposit",wallet:"👛 Wallet",profile:"👤 Profile",withdraw:"💸 Withdraw",back:"← Badhi",depositAmountLabel:"Deposit kiinni (ETB)",chooseAmount:"Deposit kiinni doori",depositAllowed:"Fanoonni: 50, 100, 300, 500 woy 1000 ETB qofa.",submitDeposit:"Mirkaneessi nna soki",accountName:"Accountte maate",telebirrAccount:"Telebirr account kiinni",withdrawAmount:"Withdraw kiinni",confirmWithdraw:"Withdraw mirkaneessi",gameTab:"🎮 Game",walletTab:"👛 Wallet",profileTab:"👤 Profile",leave:"🚪 Ba'i",stake:"Stake:",language:"🌐 Afii",depositError:"50, 100, 300, 500 woy 1000 ETB keessaa mittu doori.",withdrawError:"Withdraw 200–10,000 ETB giddo giddo ikkanno.",limit:"Guyya giddo 3 withdraw qofa."},
+ ti:{gameTitle:"🌍 EARTH GAME",chooseCard:"ካርድካ ምረጽ!",deposit:"💳 ገንዘብ ኣእቱ",wallet:"👛 ዋሌት",profile:"👤 ፕሮፋይል",withdraw:"💸 ገንዘብ ኣውጽእ",back:"← ተመለስ",depositAmountLabel:"መጠን ዲፖዚት (ETB)",chooseAmount:"መጠን ምረጽ",depositAllowed:"ዝፍቀዱ መጠናት፦ 50፣ 100፣ 300፣ 500 ወይ 1000 ETB ጥራይ።",submitDeposit:"ኣረጋግጽን ስደድን",accountName:"ስም ዋና ኣካውንት",telebirrAccount:"ቁጽሪ ኣካውንት Telebirr",withdrawAmount:"መጠን ምውጻእ",confirmWithdraw:"ምውጻእ ኣረጋግጽ",gameTab:"🎮 ጸወታ",walletTab:"👛 ዋሌት",profileTab:"👤 ፕሮፋይል",leave:"🚪 ውጻእ",stake:"Stake:",language:"🌐 ቋንቋ",depositError:"50፣ 100፣ 300፣ 500 ወይ 1000 ETB ጥራይ ምረጽ።",withdrawError:"Withdraw ካብ 200 ክሳብ 10,000 ETB ክኸውን ኣለዎ።",limit:"ኣብ መዓልቲ 3 ግዜ ጥራይ withdraw ይከኣል።"},
+ so:{gameTitle:"🌍 EARTH GAME",chooseCard:"Dooro kaarkaaga!",deposit:"💳 DHIGASHO",wallet:"👛 BOORSO",profile:"👤 ASTAAN",withdraw:"💸 LA BIXID",back:"← Dib u noqo",depositAmountLabel:"Qadarka dhigashada (ETB)",chooseAmount:"Dooro qadarka dhigashada",depositAllowed:"Qadarrada la oggol yahay: 50, 100, 300, 500 ama 1000 ETB oo keliya.",submitDeposit:"Xaqiiji oo dir",accountName:"Magaca qofka akoonka leh",telebirrAccount:"Lambarka akoonka Telebirr",withdrawAmount:"Qadarka la baxayo",confirmWithdraw:"Xaqiiji la bixidda",gameTab:"🎮 Ciyaar",walletTab:"👛 Boorso",profileTab:"👤 Astaan",leave:"🚪 Bax",stake:"Qiimaha ciyaarta:",language:"🌐 Luqad",depositError:"Dooro 50, 100, 300, 500 ama 1000 ETB oo keliya.",withdrawError:"La bixiddu waa inay u dhexaysaa 200 iyo 10,000 ETB.",limit:"Maalintii ugu badnaan 3 codsi oo la bixid ah.",calledLabel:"Lambarka la yeeray (1–75)",cardsTitle:"KAARARKAAGA",balanceLabel:"Hadhaaga",depositBtn:"➕ Dhigasho",withdrawBtn:"➖ La bax",accountTitle:"Akoon",loginTitle:"Magaca gelitaanka iyo akoonka",saveProfile:"💾 Kaydi astaanta",historyTitle:"📜 Taariikhda ciyaarta",clearHistory:"Tirtir taariikhda",copyAccount:"📋 Nuqul ka samee lambarka akoonka",voiceOn:"🔊 Codka: SHIDAN",repeatNumber:"🔁 Ku celi lambarkii ugu dambeeyay",namePlaceholder:"Geli magacaaga",accountPlaceholder:"Geli akoonkaaga",phonePlaceholder:"09XXXXXXXX",withdrawPlaceholder:"200–10000 ETB",proofLabel:"Sawirka caddeynta lacag bixinta"},
+ ha:{gameTitle:"🌍 EARTH GAME",chooseCard:"Choose your card",deposit:"💳 Deposit",wallet:"👛 Wallet",profile:"👤 Profile",withdraw:"💸 Withdraw",back:"← Back",depositAmountLabel:"Deposit amount (ETB)",chooseAmount:"Choose deposit amount",depositAllowed:"Allowed amounts: 50, 100, 300, 500, or 1000 ETB only.",submitDeposit:"Verify and Send",accountName:"Account holder name",telebirrAccount:"Telebirr account number",withdrawAmount:"Withdrawal amount",confirmWithdraw:"Confirm Withdrawal",gameTab:"🎮 Game",walletTab:"👛 Wallet",profileTab:"👤 Profile",leave:"🚪 Leave",stake:"Stake:",language:"🌐 Language",depositError:"Choose 50, 100, 300, 500, or 1000 ETB only.",withdrawError:"Withdrawal must be 200–10,000 ETB.",limit:"Maximum 3 withdrawals per day."},
+ wo:{gameTitle:"🌍 EARTH GAME",chooseCard:"Kaardiya doori!",deposit:"💳 Deposit",wallet:"👛 Wallet",profile:"👤 Profile",withdraw:"💸 Withdraw",back:"← Back",depositAmountLabel:"Deposit amount (ETB)",chooseAmount:"Deposit amount doori",depositAllowed:"50, 100, 300, 500, woy 1000 ETB qofa.",submitDeposit:"Verify and Send",accountName:"Account owner name",telebirrAccount:"Telebirr account number",withdrawAmount:"Withdraw amount",confirmWithdraw:"Confirm Withdraw",gameTab:"🎮 Game",walletTab:"👛 Wallet",profileTab:"👤 Profile",leave:"🚪 Leave",stake:"Stake:",language:"🌐 Language",depositError:"50, 100, 300, 500, woy 1000 ETB keessaa doori.",withdrawError:"Withdraw 200–10,000 ETB giddo giddo ikkanno.",limit:"Guyyaa giddo 3 withdraw qofa."},
+ ga:{gameTitle:"🌍 EARTH GAME",chooseCard:"Select your card",deposit:"💳 Deposit",wallet:"👛 Wallet",profile:"👤 Profile",withdraw:"💸 Withdraw",back:"← Back",depositAmountLabel:"Deposit amount (ETB)",chooseAmount:"Choose deposit amount",depositAllowed:"Allowed: 50, 100, 300, 500, or 1000 ETB only.",submitDeposit:"Verify and Send",accountName:"Account holder name",telebirrAccount:"Telebirr account number",withdrawAmount:"Withdrawal amount",confirmWithdraw:"Confirm Withdrawal",gameTab:"🎮 Game",walletTab:"👛 Wallet",profileTab:"👤 Profile",leave:"🚪 Leave",stake:"Stake:",language:"🌐 Language",depositError:"Choose 50, 100, 300, 500, or 1000 ETB only.",withdrawError:"Withdrawals must be 200–10,000 ETB.",limit:"Maximum 3 withdrawal requests per day."},
+ gam:{gameTitle:"🌍 EARTH GAME",chooseCard:"Choose card",deposit:"💳 Deposit",wallet:"👛 Wallet",profile:"👤 Profile",withdraw:"💸 Withdraw",back:"← Back",depositAmountLabel:"Deposit amount (ETB)",chooseAmount:"Choose deposit amount",depositAllowed:"Allowed amounts: 50, 100, 300, 500, or 1000 ETB only.",submitDeposit:"Verify and Send",accountName:"Account holder name",telebirrAccount:"Telebirr account number",withdrawAmount:"Withdrawal amount",confirmWithdraw:"Confirm Withdrawal",gameTab:"🎮 Game",walletTab:"👛 Wallet",profileTab:"👤 Profile",leave:"🚪 Leave",stake:"Stake:",language:"🌐 Language",depositError:"Choose 50, 100, 300, 500, or 1000 ETB only.",withdrawError:"Withdrawals must be 200–10,000 ETB.",limit:"Maximum 3 withdrawal requests per day."}
+};
+function applyLanguage(lang){
+  const t=translations[lang]||translations.en;
+  document.documentElement.lang=lang;
+  try{localStorage.setItem(LANG_KEY,lang)}catch(e){}
+  // Keep original content so switching languages never leaves old-language text behind.
+  const original=new Map();
+  const set=(selector,key)=>{
+    document.querySelectorAll(selector).forEach(el=>{
+      if(!original.has(el)) original.set(el,el.textContent);
+      if(t[key]) el.textContent=t[key];
+    });
+  };
+  // Restore previously translated elements first, then apply the newly selected language.
+  document.querySelectorAll('[data-lang-original]').forEach(el=>{
+    el.textContent=el.getAttribute('data-lang-original');
+  });
+  const setText=(selector,key)=>document.querySelectorAll(selector).forEach(el=>{
+    if(!el.hasAttribute('data-lang-original'))el.setAttribute('data-lang-original',el.textContent);
+    if(t[key])el.textContent=t[key];
+  });
+  setText('#selectionPage > h1','gameTitle');
+  setText('#registerBtn','registerLabel');
+  setText('#loginBtn','loginLabel');
+  setText('#logoutBtn','logoutLabel');
+  setText('#profilePage .panel > p.small','welcomeNote');
+  setText('#selectionPage .panel > p#selectedCardText','selectedCardsLabel');
+  setText('#selectionPage > p:not(.small)','chooseCard');
+  setText('#depositPage > h1','deposit'); setText('#walletPage > h1','wallet');
+  setText('#profilePage > h1','profile'); setText('#withdrawPage > h1','withdraw');
+  setText('.backBtn','back');
+  setText('label[for="depositAmount"]','depositAmountLabel');
+  setText('#depositAmount option[value=""]','chooseAmount');
+  setText('#depositPage .panel .small[data-i18n="depositAllowed"]','depositAllowed');
+  setText('#submitDepositBtn','submitDeposit');
+  setText('label[for="withdrawAccountName"]','accountName');
+  setText('label[for="withdrawAccountNumber"]','telebirrAccount');
+  setText('label[for="withdrawAmount"]','withdrawAmount');
+  setText('#submitWithdrawBtn','confirmWithdraw');
+  setText('#tabGame','gameTab');setText('#tabWallet','walletTab');
+  setText('#tabProfile','profileTab');$('exitGameBtn').textContent='🚪 Exit';
+  setText('label[for="stakeChoice"]','stake');
+  setText('#languageSelectLabel strong','language');
+  // Translate the remaining major interface labels on every page.
+  const extra={
+    '#gamePage #leaveGameBtn':'leave','#gamePage h1':'gameTitle',
+    '#gamePage h3':'calledLabel','#cardsDisplayTitle':'cardsTitle',
+    '#walletPage .panel > p:first-child':'balanceLabel','#walletBalanceLabel':'balanceLabel',
+    '#walletDepositPageBtn':'depositBtn','#walletWithdrawPageBtn':'withdrawBtn',
+    '#walletPage .panel h2':'accountTitle','#profilePage .panel h2:first-child':'loginTitle',
+    '#saveProfileBtn':'saveProfile','#gameHistoryTitle':'historyTitle',
+    '#clearHistoryBtn':'clearHistory','#copyTelebirrBtn':'copyAccount',
+    '#voiceBtn':'voiceOn','#repeatBtn':'repeatNumber'
+  };
+  Object.entries(extra).forEach(([sel,key])=>setText(sel,key));
+  // Translate labels and hints that are represented as attributes.
+  const attrs={
+    '#profileNameInput':['placeholder','namePlaceholder'],
+    '#profileAccountInput':['placeholder','accountPlaceholder'],
+    '#withdrawAccountName':['placeholder','namePlaceholder'],
+    '#withdrawAccountNumber':['placeholder','phonePlaceholder'],
+    '#withdrawAmount':['placeholder','withdrawPlaceholder'],
+    '#depositProof':['aria-label','proofLabel']
+  };
+  Object.entries(attrs).forEach(([sel,[attr,key]])=>{
+    const el=document.querySelector(sel);if(!el)return;
+    if(!el.hasAttribute('data-original-'+attr))el.setAttribute('data-original-'+attr,el.getAttribute(attr)||'');
+    el.setAttribute(attr,t[key]||el.getAttribute('data-original-'+attr));
+  });
+}
+
+const languageSelect=document.getElementById('languageSelect');
+try{languageSelect.value=localStorage.getItem(LANG_KEY)||'en'}catch(e){languageSelect.value='en'}
+languageSelect.addEventListener('change',()=>applyLanguage(languageSelect.value));
+applyLanguage(languageSelect.value);
+
+// Keep the active login session when the app is refreshed or reopened.
+// The session ends only when the user presses the explicit Logout button.
+const activeAccountAtStartup = (() => {
+  try { return (localStorage.getItem(PROFILE_ACCOUNT_KEY) || "").trim(); }
+  catch (e) { return ""; }
+})();
+if (activeAccountAtStartup) {
+  loadBalance();
+  renderPickerGrid();
+  updateBalance();
+  renderProfile();
+  updateInvitationPanel();
+  renderGameHistory();
+  totals();
+  // Game-round timers and selections are not persisted, so reopen on the
+  // selection screen if the previous page was an in-progress game.
+  let savedPage = "selectionPage";
+  try { savedPage = localStorage.getItem(LAST_PAGE_KEY) || "selectionPage"; } catch (e) {}
+  if (savedPage === "gamePage") savedPage = "selectionPage";
+  if (!pages.includes(savedPage)) savedPage = "selectionPage";
+  showOnly(savedPage);
+  setActiveTab(savedPage === "walletPage" ? "tabWallet" : savedPage === "profilePage" ? "tabProfile" : "tabGame");
+} else {
+  balance = 0;
+  renderPickerGrid();
+  updateBalance();
+  renderProfile();
+  updateInvitationPanel();
+  renderGameHistory();
+  totals();
+  showOnly("profilePage");
+  setActiveTab("tabProfile");
+  setAuthMode("register");
+}
+</script>
+</body>
+</html>
